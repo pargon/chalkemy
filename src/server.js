@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const { createRouter: createUserRouter } = require('./controllers/routers/users');
 const { createRouter: createGenreRouter } = require('./controllers/routers/genres');
-
+const { createRouter: createFilmRouter } = require('./controllers/routers/films');
+const { createRouter: createCharacterRouter } = require('./controllers/routers/characters');
 
 function makeServer() {
   const server = express();
@@ -15,7 +16,8 @@ function makeServer() {
   // endpoints
   server.use('/v1/users', createUserRouter());
   server.use('/v1/genres', createGenreRouter());
-  
+  server.use('/v1/films', createFilmRouter());
+  server.use('/v1/characters', createCharacterRouter());  
   
   server.get('/', (req, res) => res.render('index', {
     title: 'App Alkemy',

@@ -69,7 +69,7 @@ function createRouter() {
    *  post:
    *    tags:
    *    - "Users"
-   *    summary: Login user
+   *    summary: User login to get a token
    *    description: 
    *    consumes:
    *    - "application/json"
