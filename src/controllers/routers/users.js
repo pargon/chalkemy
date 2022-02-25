@@ -10,7 +10,7 @@ function createRouter() {
 
   /**
  * @swagger
- * /v1/users:
+ * /v1/auth/register:
  *  post:
  *    tags:
  *    - "Users"
@@ -30,7 +30,7 @@ function createRouter() {
  *      200:
  *        description: User created
  */
-  router.post('/', chkNewUser, async (req, res) => {
+  router.post('/register', chkNewUser, async (req, res) => {
     const { CRYPTO_KEY } = process.env;
     const User = db.getModel('UserModel');
     const Address = db.getModel('AddressModel');
@@ -65,7 +65,7 @@ function createRouter() {
   });
   /**
    * @swagger
-   * /v1/users/login:
+   * /v1/auth/login:
    *  post:
    *    tags:
    *    - "Users"

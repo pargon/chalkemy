@@ -227,8 +227,14 @@ function createRouter() {
    *        description: Invalid credential
    */
   router.get('/', chkToken, async (req, res) => {
+    
+    const Film = db.getModel('FilmModel');
     const Character = db.getModel('CharacterModel');
-    const Characters = await Character.findAll({});
+    
+    const Characters = await Character.findAll({
+      attributes: [ 'name', 'image'],
+      include: [ {model: Film, attributes: ['title']} ],
+    });
     res
       .status(200)
       .json(Characters);

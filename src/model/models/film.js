@@ -14,6 +14,10 @@ function createModel(sequelize) {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    type: {
+      type: DataTypes.STRING(60),
+      allowNull: true,
+    },
   },
     {
       timestamps: true,

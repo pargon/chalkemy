@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const db = require('../../model');
 const { chkToken } = require('../midds/token');
+const { chkAssociateGenre } = require('../midds/genre');
 
 function createRouter() {
   const router = Router();
@@ -21,7 +22,7 @@ function createRouter() {
    *      in: body
    *      required: true
    *      type: string
-   *      example: {title: String, imageurl: String, rating: Integer}
+   *      example: {title: String, imageurl: String, rating: Integer, genre: String, type: String}
    *    produces:
    *    - "application/json"
    *    responses:
@@ -29,10 +30,12 @@ function createRouter() {
    *        description: Film created
    *      401:
    *        description: Invalid credential
+   *      403:
+   *        description: Genre invalid
    *      409:
    *        description: Record already exists
    */
-  router.post('/', chkToken, async (req, res) => {
+  router.post('/', chkToken, chkAssociateGenre, async (req, res) => {
 
     // get modelo
     const Film = db.getModel('FilmModel');
@@ -40,6 +43,8 @@ function createRouter() {
       title,
       imageurl,
       rating,
+      genre,
+      type,
     } = req.body;
 
     // buscar por descripcion
@@ -61,6 +66,8 @@ function createRouter() {
           title,
           image:imageurl,
           rating,
+          genrekey:genre,
+          type,
         });
 
         // retorna
@@ -90,7 +97,7 @@ function createRouter() {
    *      in: body
    *      required: true
    *      type: string
-   *      example: {title: String, imageurl: String, rating: Integer}
+   *      example: {title: String, imageurl: String, rating: Integer, genre: String, type: String}
    *    produces:
    *    - "application/json"
    *    responses:
@@ -98,10 +105,12 @@ function createRouter() {
    *        description: Film updated
    *      401:
    *        description: Invalid credential
+   *      403:
+   *        description: Genre invalid
    *      404:
    *        description: Film not found
    */
-  router.put('/', chkToken, async (req, res) => {
+  router.put('/', chkToken, chkAssociateGenre, async (req, res) => {
 
     // get modelo
     const Film = db.getModel('FilmModel');
@@ -109,6 +118,8 @@ function createRouter() {
       title,
       imageurl,
       rating,
+      genre,
+      type,
     } = req.body;
 
     // buscar por id
@@ -127,6 +138,8 @@ function createRouter() {
         // update base
         current.image = imageurl;
         current.rating = rating;
+        current.genrekey = genre;
+        current.type = type;
         await current.save();
 
         res
@@ -220,7 +233,10 @@ function createRouter() {
    */
   router.get('/', chkToken, async (req, res) => {
     const Film = db.getModel('FilmModel');
-    const Films = await Film.findAll({});
+    const Character = db.getModel('CharacterModel');
+    const Films = await Film.findAll({
+      include:[Character],
+    });
     res
       .status(200)
       .json(Films);
@@ -241,7 +257,7 @@ function createRouter() {
    *      in: body
    *      required: true
    *      type: string
-   *      example: {title: String, character_name: String}
+   *      example: {title: String, character: String}
    *    produces:
    *    - "application/json"
    *    responses:
@@ -261,7 +277,7 @@ function createRouter() {
     const Character = db.getModel('CharacterModel');
     const {
       title,
-      character_name,
+      character,
     } = req.body;
 
     // buscar film por title
@@ -270,6 +286,9 @@ function createRouter() {
         title,
       },
     });
+
+    console.log(`post film/char ${title} y ${character}`);
+
     // si encuentra, actualiza
     if (!current) {
       res
@@ -280,7 +299,7 @@ function createRouter() {
         // busca character por name
         const charCurrent = await Character.findOne({
           where: {
-            name:character_name,
+            name:character,
           },
         });
         if (!charCurrent) {
@@ -288,6 +307,7 @@ function createRouter() {
             .status(403)
             .json({ message: 'Character invalid' });
         } else {
+          console.log(`char curr: ${JSON.stringify(charCurrent)}`);
           // update base
           current.addCharacter(charCurrent);
           await current.save();

@@ -14,7 +14,7 @@ function makeServer() {
   server.use(cors());
   
   // endpoints
-  server.use('/v1/users', createUserRouter());
+  server.use('/v1/auth', createUserRouter());
   server.use('/v1/genres', createGenreRouter());
   server.use('/v1/films', createFilmRouter());
   server.use('/v1/characters', createCharacterRouter());  

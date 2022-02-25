@@ -24,9 +24,15 @@ async function connect(host, port, username, password, database) {
   models.GenreModel = createGenreModel(conn);
   models.CharacterModel = createCharacterModel(conn);
 
+  const FilmCharacter = conn.define('filmcharacter', {},
+    {
+      timestamps: false,
+    });
+
   // relacion entre modelos
   models.FilmModel.belongsTo(models.GenreModel, { targetKey: 'name', foreignKey: 'genrekey' });
-  models.CharacterModel.belongsTo(models.FilmModel, { targetKey: 'title', foreignKey: 'filmkey' });
+  models.CharacterModel.belongsToMany(models.FilmModel, { through: FilmCharacter });
+  models.FilmModel.belongsToMany(models.CharacterModel, { through: FilmCharacter });
 
   try {
     await conn.authenticate();
