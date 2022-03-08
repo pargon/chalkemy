@@ -7,6 +7,10 @@ const { createModel: createGenreModel } = require('./models/genre');
 
 const models = {};
 
+function getSeq() {
+  return Sequelize;
+}
+
 async function connect(host, port, username, password, database) {
   const conn = new Sequelize({
     database,
@@ -37,6 +41,8 @@ async function connect(host, port, username, password, database) {
   try {
     await conn.authenticate();
     await conn.sync();
+    models.conn = conn;
+    
     global.console.log('DB: Connect Success');
   } catch (err) {
     global.console.log(`server ${host}`);
@@ -55,4 +61,5 @@ function getModel(name) {
 module.exports = {
   connect,
   getModel,
+  getSeq,
 };

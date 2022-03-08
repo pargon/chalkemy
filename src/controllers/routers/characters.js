@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const db = require('../../model');
+const { QueryTypes, Sequelize } = require('@sequelize/core');
 const { chkToken } = require('../midds/token');
 
 function createRouter() {
@@ -61,7 +62,7 @@ function createRouter() {
         // crea nuevo medio de pago
         const newCharacter = await Character.create({
           name,
-          image:imageurl,
+          image: imageurl,
           age,
           weight,
           story,
@@ -218,6 +219,22 @@ function createRouter() {
    *    - "Characters"
    *    summary: List characters
    *    description:
+   *    parameters:
+   *    - in: query
+   *      name: name
+   *      schema:
+   *        type: string
+   *      description: The name of character
+   *    - in: query
+   *      name: age
+   *      schema:
+   *        type: integer
+   *      description: The age of character
+   *    - in: query
+   *      name: movies
+   *      schema:
+   *        type: integer
+   *      description: The movie id 
    *    produces:
    *    - "application/json"
    *    responses:
@@ -227,17 +244,95 @@ function createRouter() {
    *        description: Invalid credential
    */
   router.get('/', chkToken, async (req, res) => {
-    
+
+    const { name,
+      age,
+      movies
+    } = req.query;
+
+    const conn = db.getModel('conn');
+
+    let condition = 'where 1=1';
+    if (name) {
+      condition = `${condition} and name='${name}'`;
+    }
+    if (age) {
+      condition = `${condition} and age=${age}`;
+    }
+    if (movies) {
+      condition = `${condition} and extists (select * from films f where f.id=${movies} and f.id in(select filmId from filmcharacters fc where fc.characterId = c.id))`;
+    }
+
     const Film = db.getModel('FilmModel');
     const Character = db.getModel('CharacterModel');
-    
-    const Characters = await Character.findAll({
-      attributes: [ 'name', 'image'],
-      include: [ {model: Film, attributes: ['title']} ],
-    });
-    res
-      .status(200)
-      .json(Characters);
+    function convert(obj) {
+      let arr = [];
+      for (o in obj) {
+        arr.push(o);
+      }
+      return arr;
+    }
+
+    try {
+      // const movies = 'f.title as `films.film`';
+      const objchars = await conn.query(
+        // `select name as 'char.name', c.image as 'char.image', age as 'char.age', weight as 'char.w', story as 'char.st', ${movies} `+
+        // `select 'c'.'name', 'c'.'age', 'f'.'title' `
+        `select c.id ` +
+        `from characters as c ` +
+        // `inner join filmcharacters fc on fc.characterId = c.id ` +
+        // `inner join films as f on f.id = fc.filmId `+
+        `${condition}`,
+        {
+          // model: Character,
+          // nest: false,
+          raw: true,
+          type: QueryTypes.SELECT,
+        });
+
+      const idchars = convert(objchars);
+      console.log(`id encontrados: ${idchars}`);
+
+
+      let whereOptions = {};
+      if (name) {
+        whereOptions = { name };
+      }
+      // if (age) {
+      //   whereOptions = whereOptions +  { age };
+      // }
+      // if (movies) {
+      //   condition = `${condition} and extists (select * from films f where f.id=${movies} and f.id in(select filmId from filmcharacters fc where fc.characterId = c.id))`;
+      // }
+
+
+      //   where: {
+      //     id: {
+      //       [Sequelize.Op.in]: idchars
+      //     }
+      //   }
+      // };
+
+      console.log(`where: ${JSON.stringify(whereOptions)}`);
+
+      const characters = await Character.findAll({
+        attributes: ["name", "image"],
+        where: whereOptions,
+        include: [{
+          model: Film,
+          attributes: ["title"]
+        }
+        ]
+      }
+      );
+
+      res
+        .status(200)
+        .json(characters);
+
+    } catch (error) {
+      console.log(error);
+    }
   });
 
   return router;
