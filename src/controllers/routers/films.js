@@ -64,9 +64,9 @@ function createRouter() {
         // crea nuevo medio de pago
         const newFilm = await Film.create({
           title,
-          image:imageurl,
+          image: imageurl,
           rating,
-          genrekey:genre,
+          genrekey: genre,
           type,
         });
 
@@ -217,12 +217,18 @@ function createRouter() {
   });
   /**
    * @swagger
-   * /v1/films:
+   * /v1/films/:id:
    *  get:
    *    tags:
    *    - "Films"
-   *    summary: List films
+   *    summary: Get film
    *    description:
+   *    parameters:
+   *    - in: params
+   *      name: id
+   *      schema:
+   *        type: string
+   *      description: The id of film
    *    produces:
    *    - "application/json"
    *    responses:
@@ -230,16 +236,33 @@ function createRouter() {
    *        description: Success
    *      401:
    *        description: Invalid credential
+   *      404:
+   *        description: Film not found
    */
-  router.get('/', chkToken, async (req, res) => {
+  router.get('/:id', chkToken, async (req, res) => {
+    const {
+      id
+    } = req.params;
+
     const Film = db.getModel('FilmModel');
     const Character = db.getModel('CharacterModel');
-    const Films = await Film.findAll({
-      include:[Character],
+    const films = await Film.findByPk(id, {
+      include: [{
+        model: Character,
+        attributes: ["name"],
+      },
+      ]
     });
-    res
-      .status(200)
-      .json(Films);
+
+    if (films) {
+      res
+        .status(200)
+        .json(films);
+    } else {
+      res
+        .status(404)
+        .json({ message: 'Film not found' });
+    }
   });
   /**
    * @swagger
@@ -299,7 +322,7 @@ function createRouter() {
         // busca character por name
         const charCurrent = await Character.findOne({
           where: {
-            name:character,
+            name: character,
           },
         });
         if (!charCurrent) {
