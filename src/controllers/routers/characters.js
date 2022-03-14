@@ -290,8 +290,6 @@ function createRouter() {
   *        description: Success
   *      401:
   *        description: Invalid credential
-  *      404:
-  *        description: Characters not found
   */
   router.get('/', chkToken, async (req, res) => {
 
@@ -335,22 +333,9 @@ function createRouter() {
       }]
     });
 
-    if (characters) {
-      if (characters.lenght > 0) {
-        res
-          .status(200)
-          .json(characters);
-      } else {
-        res
-          .status(404)
-          .json({ message: 'Characters not found' });
-      }
-    }
-    else {
-      res
-        .status(404)
-        .json({ message: 'Characters not found' });
-    }
+    res
+      .status(200)
+      .json(characters);
   });
 
   return router;
