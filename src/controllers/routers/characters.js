@@ -213,28 +213,18 @@ function createRouter() {
   });
   /**
    * @swagger
-   * /v1/characters:
+   * /v1/characters/:id:
    *  get:
    *    tags:
    *    - "Characters"
-   *    summary: List characters
+   *    summary: Get character
    *    description:
    *    parameters:
-   *    - in: query
-   *      name: name
+   *    - in: params
+   *      name: id
    *      schema:
    *        type: string
-   *      description: The name of character
-   *    - in: query
-   *      name: age
-   *      schema:
-   *        type: integer
-   *      description: The age of character
-   *    - in: query
-   *      name: movies
-   *      schema:
-   *        type: integer
-   *      description: The movie id 
+   *      description: The id of character
    *    produces:
    *    - "application/json"
    *    responses:
@@ -242,96 +232,124 @@ function createRouter() {
    *        description: Success
    *      401:
    *        description: Invalid credential
+   *      404:
+   *        description: Character not found
    */
+  router.get('/:id', chkToken, async (req, res) => {
+    const {
+      id
+    } = req.params;
+
+    const Film = db.getModel('FilmModel');
+    const Character = db.getModel('CharacterModel');
+    const characters = await Character.findByPk(id, {
+      include: [{
+        model: Film,
+        attributes: ["title"],
+      }]
+    });
+
+    if (characters) {
+      res
+        .status(200)
+        .json(characters);
+    } else {
+      res
+        .status(404)
+        .json({ message: 'Character not found' });
+    }
+  });
+  /**
+  * @swagger
+  * /v1/characters:
+  *  get:
+  *    tags:
+  *    - "Characters"
+  *    summary: List characters
+  *    description:
+  *    parameters:
+  *    - in: query
+  *      name: name
+  *      schema:
+  *        type: string
+  *      description: The name of character
+  *    - in: query
+  *      name: age
+  *      schema:
+  *        type: integer
+  *      description: The age of character
+  *    - in: query
+  *      name: movies
+  *      schema:
+  *        type: integer
+  *      description: The movie id 
+  *    produces:
+  *    - "application/json"
+  *    responses:
+  *      200:
+  *        description: Success
+  *      401:
+  *        description: Invalid credential
+  *      404:
+  *        description: Characters not found
+  */
   router.get('/', chkToken, async (req, res) => {
 
-    const { name,
+    const {
+      name,
       age,
       movies
     } = req.query;
 
-    const conn = db.getModel('conn');
-
-    let condition = 'where 1=1';
-    if (name) {
-      condition = `${condition} and name='${name}'`;
-    }
-    if (age) {
-      condition = `${condition} and age=${age}`;
-    }
-    if (movies) {
-      condition = `${condition} and extists (select * from films f where f.id=${movies} and f.id in(select filmId from filmcharacters fc where fc.characterId = c.id))`;
-    }
-
     const Film = db.getModel('FilmModel');
     const Character = db.getModel('CharacterModel');
-    function convert(obj) {
-      let arr = [];
-      for (o in obj) {
-        arr.push(o);
-      }
-      return arr;
-    }
 
-    try {
-      // const movies = 'f.title as `films.film`';
-      const objchars = await conn.query(
-        // `select name as 'char.name', c.image as 'char.image', age as 'char.age', weight as 'char.w', story as 'char.st', ${movies} `+
-        // `select 'c'.'name', 'c'.'age', 'f'.'title' `
-        `select c.id ` +
-        `from characters as c ` +
-        // `inner join filmcharacters fc on fc.characterId = c.id ` +
-        // `inner join films as f on f.id = fc.filmId `+
-        `${condition}`,
-        {
-          // model: Character,
-          // nest: false,
-          raw: true,
-          type: QueryTypes.SELECT,
-        });
-
-      const idchars = convert(objchars);
-      console.log(`id encontrados: ${idchars}`);
-
-
-      let whereOptions = {};
+    // where condition Character
+    let whereOptions = {};
+    if (name && age) {
+      whereOptions = { name, age };
+    } else {
       if (name) {
         whereOptions = { name };
-      }
-      // if (age) {
-      //   whereOptions = whereOptions +  { age };
-      // }
-      // if (movies) {
-      //   condition = `${condition} and extists (select * from films f where f.id=${movies} and f.id in(select filmId from filmcharacters fc where fc.characterId = c.id))`;
-      // }
-
-
-      //   where: {
-      //     id: {
-      //       [Sequelize.Op.in]: idchars
-      //     }
-      //   }
-      // };
-
-      console.log(`where: ${JSON.stringify(whereOptions)}`);
-
-      const characters = await Character.findAll({
-        attributes: ["name", "image"],
-        where: whereOptions,
-        include: [{
-          model: Film,
-          attributes: ["title"]
+      } else {
+        if (age) {
+          whereOptions = { age };
         }
-        ]
       }
-      );
+    }
 
+    // where condition Film    
+    let whereOptionsFilm = {};
+    if (movies) {
+      whereOptionsFilm = { id: movies };
+    }
+
+    // find
+    const characters = await Character.findAll({
+      attributes: ["name", "image"],
+      where: whereOptions,
+      include: [{
+        model: Film,
+        attributes: ["title"],
+        where: whereOptionsFilm
+      }]
+    });
+
+    if (characters) {
+      if (characters.lenght > 0) {
+        res
+          .status(200)
+          .json(characters);
+      } else {
+        res
+          .status(404)
+          .json({ message: 'Characters not found' });
+      }
+    }
+    else {
       res
-        .status(200)
-        .json(characters);
-
-    } catch (error) {
-      console.log(error);
+        .status(404)
+        .json({ message: 'Characters not found' });
     }
   });
 
