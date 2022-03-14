@@ -279,6 +279,11 @@ function createRouter() {
   *        type: integer
   *      description: The age of character
   *    - in: query
+  *      name: weight
+  *      schema:
+  *        type: double
+  *      description: The weight of character
+  *    - in: query
   *      name: movies
   *      schema:
   *        type: integer
@@ -296,6 +301,7 @@ function createRouter() {
     const {
       name,
       age,
+      weight,
       movies
     } = req.query;
 
@@ -304,22 +310,20 @@ function createRouter() {
 
     // where condition Character
     let whereOptions = {};
-    if (name && age) {
-      whereOptions = { name, age };
-    } else {
-      if (name) {
-        whereOptions = { name };
-      } else {
-        if (age) {
-          whereOptions = { age };
-        }
-      }
+    if(name){
+      whereOptions.name = name;
+    }
+    if(age){
+      whereOptions.age = age;
+    }
+    if(weight){
+      whereOptions.weight = weight;
     }
 
     // where condition Film    
     let whereOptionsFilm = {};
     if (movies) {
-      whereOptionsFilm = { id: movies };
+      whereOptionsFilm.id = movies;
     }
 
     // find
