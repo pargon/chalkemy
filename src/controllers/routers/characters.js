@@ -328,7 +328,7 @@ function createRouter() {
       where: whereOptions,
       include: [{
         model: Film,
-        attributes: ["title"],
+        attributes: ["title", "type"],
         where: whereOptionsFilm
       }]
     });
