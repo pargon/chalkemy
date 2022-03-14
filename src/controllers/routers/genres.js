@@ -198,12 +198,18 @@ function createRouter() {
   });
   /**
    * @swagger
-   * /v1/genres:
+   * /v1/genres/:id:
    *  get:
    *    tags:
    *    - "Genres"
-   *    summary: List genres
+   *    summary: Get genre
    *    description:
+   *    parameters:
+   *    - in: params
+   *      name: id
+   *      schema:
+   *        type: string
+   *      description: The id of genre
    *    produces:
    *    - "application/json"
    *    responses:
@@ -211,13 +217,26 @@ function createRouter() {
    *        description: Success
    *      401:
    *        description: Invalid credential
+   *      404:
+   *        description: Genre not found
    */
-  router.get('/', chkToken, async (req, res) => {
+   router.get('/:id', chkToken, async (req, res) => {
+    const {
+      id
+    } = req.params;
+
     const Genre = db.getModel('GenreModel');
-    const Genres = await Genre.findAll({});
-    res
-      .status(200)
-      .json(Genres);
+    const genres = await Genre.findByPk(id);
+
+    if (genres) {
+      res
+        .status(200)
+        .json(genres);
+    } else {
+      res
+        .status(404)
+        .json({ message: 'Genre not found' });
+    }
   });
 
   return router;
