@@ -6,6 +6,10 @@ const { createModel: createFilmModel } = require('./models/film');
 const { createModel: createGenreModel } = require('./models/genre');
 
 const models = {};
+const filmType = {
+  Movie: "movie",
+  Serie: "serie",
+}
 
 function getSeq() {
   return Sequelize;
@@ -62,4 +66,5 @@ module.exports = {
   connect,
   getModel,
   getSeq,
+  filmType,
 };

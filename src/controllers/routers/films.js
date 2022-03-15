@@ -22,7 +22,7 @@ function createRouter() {
    *      in: body
    *      required: true
    *      type: string
-   *      example: {title: String, imageurl: String, rating: Integer, genre: String, type: String}
+   *      example: {title: String, imageurl: String, rating: Integer, genre: String, type: [movie, serie]}
    *    produces:
    *    - "application/json"
    *    responses:
@@ -34,7 +34,7 @@ function createRouter() {
    *        description: Genre invalid
    *      409:
    *        description: Record already exists
-   */
+*/
   router.post('/', chkToken, chkAssociateGenre, async (req, res) => {
 
     // get modelo
@@ -97,7 +97,7 @@ function createRouter() {
    *      in: body
    *      required: true
    *      type: string
-   *      example: {title: String, imageurl: String, rating: Integer, genre: String, type: String}
+   *      example: {title: String, imageurl: String, rating: Integer, genre: String, type: [movie, serie]}
    *    produces:
    *    - "application/json"
    *    responses:

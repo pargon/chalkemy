@@ -4,6 +4,7 @@ const { createRouter: createUserRouter } = require('./controllers/routers/users'
 const { createRouter: createGenreRouter } = require('./controllers/routers/genres');
 const { createRouter: createFilmRouter } = require('./controllers/routers/films');
 const { createRouter: createCharacterRouter } = require('./controllers/routers/characters');
+const { createRouter: createMovieRouter } = require('./controllers/routers/movies');
 
 function makeServer() {
   const server = express();
@@ -18,6 +19,7 @@ function makeServer() {
   server.use('/v1/genres', createGenreRouter());
   server.use('/v1/films', createFilmRouter());
   server.use('/v1/characters', createCharacterRouter());  
+  server.use('/v1/movies', createMovieRouter());  
   
   server.get('/', (req, res) => res.render('index', {
     title: 'App Alkemy',
