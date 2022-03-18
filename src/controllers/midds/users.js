@@ -1,8 +1,16 @@
 // const chalk = require('chalk');
 const CryptoJS = require('crypto-js');
+const sgMail = require('@sendgrid/mail');
 const db = require('../../model');
 
 async function chkNewUser(req, res, next) {
+
+  if (!req.body.mail) {
+    res
+      .status(406)
+      .send({ message: 'Invalid Mail' });
+  }
+
   const User = db.getModel('UserModel');
   // buscar por mail
   const current = await User.findOne({
@@ -67,7 +75,33 @@ async function login(req, res, next) {
   }
 }
 
+async function sendmail(mail) {
+
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+  const msg = {
+    to: mail,
+    from: process.env.SENDGRID_API_SENDER,
+    subject: 'Welcome to DB Disney Alkemy',
+    text: 'This is a automatic message. Not response',
+    html: '<strong>and thank you for register</strong>',
+  };
+
+  sgMail
+    .send(msg)
+    .then(() => {
+      console.log(`mail enviado a: ${mail}`)
+    }, error => {
+      console.error(error);
+
+      if (error.response) {
+        console.error(error.response.body)
+      }
+    });
+}
+
 module.exports = {
   chkNewUser,
   login,
+  sendmail,
 };

@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^7.6.2",
     "@sequelize/core": "^7.0.0-alpha.10",
     "chalk": "^5.0.0",
     "cors": "^2.8.5",

@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const CryptoJS = require('crypto-js');
 const db = require('../../model');
-const { chkNewUser, login, chkAdmin, chkUserActive } = require('../midds/users');
+const { chkNewUser, login, chkAdmin, chkUserActive, sendmail } = require('../midds/users');
 const { newToken, chkToken } = require('../midds/token');
 
 function createRouter() {
@@ -33,7 +33,6 @@ function createRouter() {
   router.post('/register', chkNewUser, async (req, res) => {
     const { CRYPTO_KEY } = process.env;
     const User = db.getModel('UserModel');
-    const Address = db.getModel('AddressModel');
     const {
       userid,
       name,
@@ -55,6 +54,10 @@ function createRouter() {
         password: passwordCryp,
       },
       );
+
+      // envio mail;
+      sendmail(mail);
+
       // devuelvo ok el endpoint
       res.status(200).json(newUser);
 
