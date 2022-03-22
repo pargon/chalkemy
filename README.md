@@ -31,3 +31,7 @@ Iniciar API
 ```bash
 npm run dev
 ```
+
+## URL API
+
+Ingresar a ver documentación de los [endpoints] ('http://localhost:5050/docs')
